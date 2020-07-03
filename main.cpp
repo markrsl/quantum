@@ -2,24 +2,23 @@
 #include <cmath>
 #include <vector>
 #include <iomanip>
+#include "Logger.h"
+
+#define PI 3.1415926535897932384626433832795
 
 using namespace std;
 
-int nWire = 16;
-int inverseBit = 5;
-int nRuns = 3;
+int nWire = 1;
+int inverseBit = 1;
+int nRuns = 1;
 
-void prt(vector<double> &amp) {
-//    cout << "Amp:\t";
-//    for (auto it:amp) {
-//        cout << it << '\t';
-//    }
-//    cout << endl;
-    cout << "Prob:\t";
-    for (auto it:amp) {
-        cout << it * it << '\t';
+bool isMatch(vector<double> &amp) {
+    for (int i = amp.size() - 1; i >= nWire - inverseBit; i--) {
+//        if (abs(amp[i]) > 0)
+        if (abs(amp[i]) > 0.0000000000000001)
+            return false;
     }
-    cout << endl;
+    return true;
 }
 
 void prtSum(vector<double> &amp) {
@@ -44,21 +43,30 @@ void run(vector<double> &amp, int count) {
             avg += it;
         avg /= nWire;
         for (auto &it :amp)
-            it = avg - (it - avg);
+            it = 2.0 * avg - it;
+        if (isMatch(amp)) {
+            Logger logger("../match.csv");
+            logger.writeComma(nWire);
+            logger.writeLine(count + 1);
+            cout << nWire << "," << count + 1 << endl;
+        }
         run(amp, count + 1);
     }
 }
 
 int main() {
     cout << fixed << setprecision(10);
-
-    while (nWire < 17) {
+    cout << "input nWire and maxWire" << endl;
+    int maxWire;
+    cin >> nWire >> maxWire;
+    if (nWire < inverseBit)
+        return -9999;
+    while (nWire <= maxWire) {
         vector<double> amp(nWire, 1.0 / sqrt(nWire));
-        cout << nWire << ',';
+//        cout << nWire << ',';
+        nRuns = ceil((PI / 2.0 - 1.0 / sqrt(nWire)) / (2.0 / sqrt(nWire)));
         run(amp, 0);
-        prtSum(amp);
         nWire++;
     }
-
     return 0;
 }
